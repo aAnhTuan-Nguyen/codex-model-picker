@@ -4,8 +4,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import App from '../../src/renderer/App'
 import type { PickerBridge, ConfigSnapshot } from '../../src/shared/contracts'
 afterEach(() => { cleanup(); delete window.modelPicker })
-function setup() {
-  let snapshot: ConfigSnapshot = { revision: 'original', exists: true, displayPath: 'C:\\Users\\Me\\.codex\\config.toml', warnings: [], values: { model: 'a', modelReasoningEffort: 'medium' } }
+function setup(effort = 'medium') {
+  let snapshot: ConfigSnapshot = { revision: 'original', exists: true, displayPath: 'C:\\Users\\Me\\.codex\\config.toml', warnings: [], values: { model: 'a', modelReasoningEffort: effort } }
   const save = vi.fn(async (input) => { snapshot = { ...snapshot, revision: 'saved', values: { model: input.selection.model, modelReasoningEffort: input.selection.effort.value } }; return { ok: true, data: { snapshot, historyId: 'id' } } })
   window.modelPicker = {
     readConfig: async () => ({ ok: true, data: snapshot }),
@@ -39,4 +39,15 @@ it('keeps selection and shows reload when saving finds an external edit', async 
   await screen.findByText('Tệp đã được chỉnh bên ngoài.')
   expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'High')
   expect(screen.getByRole('button', { name: 'Tải lại' })).toBeInTheDocument()
+})
+it('does not propose rewriting an unsupported stored effort and can discard an explicit change', async () => {
+  const { save } = setup('legacy')
+  const slider = await screen.findByRole('slider', { name: 'Mức suy luận' })
+  expect(screen.getByRole('button', { name: 'Lưu mặc định' })).toBeDisabled()
+  await screen.findByText('Mức đang lưu không thuộc danh mục này. Chọn một nấc hoặc dùng mặc định Codex.')
+  fireEvent.keyDown(slider, { key: 'End' })
+  expect(screen.getByRole('button', { name: 'Lưu mặc định' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Bỏ thay đổi' }))
+  expect(screen.getByRole('button', { name: 'Lưu mặc định' })).toBeDisabled()
+  expect(save).not.toHaveBeenCalled()
 })

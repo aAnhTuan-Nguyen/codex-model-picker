@@ -2,6 +2,8 @@
 
 Ứng dụng Windows độc lập để chọn model và kéo mức suy luận cho cấu hình mặc định Codex. Giao diện tối, xem trước thay đổi, sao lưu và hoàn tác từng mục.
 
+![Giao diện thực tế ở chế độ DEV, dữ liệu model chỉ minh họa](docs/images/preview.png)
+
 **Trạng thái:** bản đầu đang được kiểm thử. Công cụ chỉnh `config.toml`, không điều khiển chat đang mở. Tích hợp với Codex Desktop trên máy thật cần được xác minh theo [checklist Windows](docs/windows-validation.md).
 
 ## Tải và chạy trên Windows
@@ -81,3 +83,4 @@ Nếu npm không ghi được cache trong home của cloud, dùng `npm_config_ca
 - [Kế hoạch triển khai](docs/superpowers/plans/2026-10-15-model-picker.md)
 - [Nghiên cứu giao thức và giới hạn Desktop](docs/model-picker-notes.vi.md)
 - [Kết quả kiểm thử và việc cần xác minh trên Windows](docs/windows-validation.md)
+- [Trạng thái triển khai và review](docs/implementation-status.md)

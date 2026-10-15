@@ -69,5 +69,21 @@ export async function loadCatalog(input: { executable: string; prefixArgs?: stri
     } while (cursor)
     return { status: 'available', models: models.filter((m, i, all) => all.findIndex(x => x.id === m.id) === i) }
   } catch { return unavailable() }
-  finally { clearTimeout(timeout); child.stdin.end(); child.kill(); await closed }
+  finally {
+    clearTimeout(timeout)
+    stopped = true
+    child.stdin.end()
+    child.kill()
+    // Only the process we spawned is signalled. Descendants may hold inherited
+    // pipe handles, so waiting for `close` must also have a fixed deadline.
+    const force = setTimeout(() => {
+      child.kill('SIGKILL')
+      child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy()
+    }, 200)
+    let deadline: NodeJS.Timeout | undefined
+    await Promise.race([closed, new Promise<void>(resolve => { deadline = setTimeout(resolve, 500) })])
+    clearTimeout(force); clearTimeout(deadline)
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+    child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy()
+  }
 }

@@ -43,3 +43,23 @@ it('preserves UTF-8 names split in the middle of a multibyte character', async (
   const result = await loadCatalog({ executable: process.execPath, prefixArgs: [cli], codexHome: root, configPath: path.join(root, 'config.toml'), cwd: root, timeoutMs: 1000 })
   expect(result.models[0].displayName).toBe('Tư duy')
 })
+async function boundedCleanupTest(script: string) {
+  const cli = path.join(root, 'stubborn.cjs'), pidFile = path.join(root, 'owned-pid')
+  await fs.writeFile(cli, script.replaceAll('__PID_FILE__', JSON.stringify(pidFile)))
+  const pending = loadCatalog({ executable: process.execPath, prefixArgs: [cli], codexHome: root, configPath: path.join(root, 'config.toml'), cwd: root, timeoutMs: 400 })
+  let timer: NodeJS.Timeout | undefined
+  try {
+    const settled = await Promise.race([pending.then(() => true), new Promise<false>(resolve => { timer = setTimeout(() => resolve(false), 1400) })])
+    expect(settled).toBe(true)
+  } finally {
+    clearTimeout(timer)
+    try { const pid = Number(await fs.readFile(pidFile, 'utf8')); process.kill(pid, 'SIGKILL') } catch { /* Already exited. */ }
+    await pending
+  }
+}
+it('bounds cleanup even when its owned CLI ignores graceful termination', async () => {
+  await boundedCleanupTest(`require('fs').writeFileSync(__PID_FILE__,String(process.pid));process.on('SIGTERM',()=>{});setInterval(()=>{},1000)`)
+})
+it('bounds cleanup if a descendant keeps stdout and stderr pipes open', async () => {
+  await boundedCleanupTest(`const c=require('child_process').spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:['ignore',process.stdout,process.stderr]});require('fs').writeFileSync(__PID_FILE__,String(c.pid));setInterval(()=>{},1000)`)
+})

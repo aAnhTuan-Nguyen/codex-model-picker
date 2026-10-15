@@ -19,6 +19,7 @@ Không có Browser plugin; browser runtime của nền tảng không có binding
 - Bộ cài và app đã đóng gói chạy trên Windows 11 x64; scale Windows 125%/150%, khóa file theo cơ chế Windows. Workflow GitHub Actions đã cấu hình các bước Windows. Chỉ ghi passed khi có kết quả run thực tế.
 - Cấu hình có hiệu lực trong Codex Desktop Windows của người dùng; máy cloud không có ứng dụng/tài khoản Desktop tương ứng.
 - Theo dõi workflow/đọc artifact bằng API GitHub: API bị proxy cloud chặn HTTP CONNECT 403 tại thời điểm kiểm tra. Git HTTPS được kiểm tra riêng; khả năng push không chứng minh API dùng được.
+- Cross-build installer NSIS tại Linux: chặn ở bước cần Wine (`spawn wine ENOENT`), sau khi đã tải/đóng gói Windows Electron. Không dùng file installer tạo dở; kết quả này không ảnh hưởng cấu hình Windows CI.
 
 ## Checklist trên Windows của người dùng
 

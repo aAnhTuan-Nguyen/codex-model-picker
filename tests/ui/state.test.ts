@@ -15,3 +15,13 @@ it('keeps inherited effort absent and unsets stale effort on manual models', () 
   expect(deriveSelection({ snapshot: { ...snapshot, values: { model: 'a' } }, model: a, previous: null }).effort).toEqual({ kind: 'keep' })
   expect(deriveSelection({ snapshot, model: { ...a, id: 'manual', efforts: null, source: 'manual' }, previous: { model: 'a', effort: { kind: 'keep' } } }).effort).toEqual({ kind: 'unset' })
 })
+it('preserves unsupported persisted effort on load, metadata refresh and discard', () => {
+  const old = { ...snapshot, values: { model: 'a', modelReasoningEffort: 'legacy' } }
+  const model = { ...a, efforts: ['low', 'high'], defaultEffort: 'high' }
+  const initial = deriveSelection({ snapshot: old, model, previous: null })
+  expect(initial.effort).toEqual({ kind: 'keep' })
+  expect(isDirty(old, initial)).toBe(false)
+  expect(deriveSelection({ snapshot: old, model, previous: initial }).effort).toEqual({ kind: 'keep' })
+  const reset = deriveSelection({ snapshot: old, model, previous: null })
+  expect(isDirty(old, reset)).toBe(false)
+})

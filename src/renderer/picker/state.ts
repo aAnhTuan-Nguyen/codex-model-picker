@@ -23,6 +23,9 @@ export function deriveSelection({ snapshot, model, previous }: { snapshot: Confi
   if (!effective) return { model: model.id, effort: { kind: 'keep' } }
   if (model.efforts?.includes(effective)) return { model: model.id, effort: { kind: 'set', value: effective } }
   const changed = model.id !== (previous?.model ?? snapshot.values.model)
+  // Loading metadata or discarding edits must preserve the file, even if a
+  // legacy effort is no longer supported. selectionIssue explains that state.
+  if (!changed) return { model: model.id, effort: base }
   if (changed && model.efforts === null) return { model: model.id, effort: { kind: 'unset' } }
   if (model.defaultEffort && model.efforts?.includes(model.defaultEffort)) return { model: model.id, effort: { kind: 'set', value: model.defaultEffort } }
   if (changed && !model.efforts?.length) return { model: model.id, effort: { kind: 'unset' } }
