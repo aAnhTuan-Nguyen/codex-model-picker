@@ -18,6 +18,8 @@ Kiểm tra đã chạy sau lượt sửa review: 42 unit/component tests passed,
 
 Cross-build NSIS trên Linux đã được thử, chặn ở bước cần Wine; file `.exe` tạo dở không được bàn giao. Workflow Windows là đường tạo installer chuẩn. Không coi việc thêm workflow là bằng chứng workflow đã chạy thành công; API GitHub bị proxy cloud chặn CONNECT 403.
 
+Bản ZIP portable Windows bổ sung đã build thành công và qua kiểm tra CRC/ASAR; xem checksum và giới hạn ở `docs/windows-validation.md`. Sau đó đã cài lại bằng `npm ci` từ lockfile và chạy lại typecheck/build + 42 tests thành công, xác minh setup có thể lặp lại. Hướng dẫn `install_script` và `start_skill` đã được lưu vào draft môi trường cloud; việc lưu draft không publish snapshot hoặc áp dụng cấu hình runtime.
+
 ## Review độc lập và sửa lỗi
 
 Một reviewer độc lập đọc commit `dd5517e` theo spec và review focus. Không có finding Critical; có hai finding Important đã được tái hiện bằng test thất bại rồi sửa:

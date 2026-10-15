@@ -21,6 +21,21 @@ Không có Browser plugin; browser runtime của nền tảng không có binding
 - Theo dõi workflow/đọc artifact bằng API GitHub: API bị proxy cloud chặn HTTP CONNECT 403 tại thời điểm kiểm tra. Git HTTPS được kiểm tra riêng; khả năng push không chứng minh API dùng được.
 - Cross-build installer NSIS tại Linux: chặn ở bước cần Wine (`spawn wine ENOENT`), sau khi đã tải/đóng gói Windows Electron. Không dùng file installer tạo dở; kết quả này không ảnh hưởng cấu hình Windows CI.
 
+## Bản ZIP chạy thử được tạo ở cloud
+
+`release/Codex-Model-Picker-0.1.0-Windows-portable.zip` đã đóng gói thành công, dung lượng 158.014.455 bytes. Kiểm tra CRC toàn bộ ZIP đạt; có Windows PE executable và `resources/app.asar`. Main trong ASAR khớp build sau sửa review, có đủ parser runtime và không chứa thư mục test/docs/cấu hình riêng tư của repo.
+
+SHA-256: `143b5ce4eacb97a02658674c34a1a25603bd127b7f84295e384553f3343f3a47`.
+
+Đây là kết quả build, **chưa phải kết quả chạy thử trên Windows**. ZIP nằm trong workspace cloud, được Git ignore; không được push như source. Giải nén toàn bộ rồi mới chạy `Codex Model Picker.exe`. Bản ZIP cross-build bỏ bước chỉnh resource/version và ký executable do không có Wine; bản NSIS từ Windows CI là đường đóng gói chuẩn.
+
+Lệnh cross-build ZIP đã chạy:
+
+```sh
+npm run build
+XDG_CACHE_HOME=/tmp/codex-model-picker-cache ELECTRON_BUILDER_CACHE=/tmp/codex-model-picker-builder npx electron-builder --win zip --x64 --publish never --config.win.signAndEditExecutable=false --config.win.artifactName=Codex-Model-Picker-0.1.0-Windows-portable.zip
+```
+
 ## Checklist trên Windows của người dùng
 
 1. Ghi phiên bản Codex Desktop, CLI (nếu có), provider và đường dẫn `config.toml` đang dùng.
