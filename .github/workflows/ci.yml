@@ -1,0 +1,55 @@
+name: Test and build Windows app
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --project=renderer
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run setup:electron
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:e2e -- --project=desktop
+      - run: npm run dist:win
+      - name: Smoke-test packaged app
+        run: npm run test:e2e -- --project=desktop
+        env:
+          MODEL_PICKER_EXECUTABLE: ${{ github.workspace }}\release\win-unpacked\Codex Model Picker.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Codex-Model-Picker-Windows-x64
+          path: release/*Setup.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: windows-test-results
+          path: test-results/

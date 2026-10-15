@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { selectionSchema, saveSchema, createBridge } from '../../src/shared/contracts'
+import { createBridge } from '../../src/shared/contracts'
+import { selectionSchema, saveSchema } from '../../src/shared/validation'
 describe('narrow desktop bridge', () => {
   it('rejects arbitrary paths and unknown fields on save', () => {
     expect(saveSchema.safeParse({ expectedRevision: 'abc', selection: { model: 'model-a', effort: { kind: 'keep' } }, path: '/arbitrary' }).success).toBe(false)

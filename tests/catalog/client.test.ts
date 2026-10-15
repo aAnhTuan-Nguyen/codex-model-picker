@@ -32,3 +32,14 @@ it('rejects mismatched homes and cmd wrappers without starting them', async () =
   expect((await loadCatalog({ ...base, executable: process.execPath })).status).toBe('unavailable')
   expect((await loadCatalog({ ...base, configPath: path.join(root, 'config.toml'), executable: 'codex.cmd' })).status).toBe('unavailable')
 })
+it('refuses catalog verification when config/read is malformed', async () => {
+  const cli = path.join(root, 'malformed.cjs')
+  await fs.writeFile(cli, `require('readline').createInterface({input:process.stdin}).on('line',s=>{const m=JSON.parse(s);if(m.id)console.log(JSON.stringify({id:m.id,result:m.method==='model/list'?{data:[]}: {}}))})`)
+  expect((await loadCatalog({ executable: process.execPath, prefixArgs: [cli], codexHome: root, configPath: path.join(root, 'config.toml'), cwd: root, timeoutMs: 500 })).status).toBe('unavailable')
+})
+it('preserves UTF-8 names split in the middle of a multibyte character', async () => {
+  const cli = path.join(root, 'unicode.cjs')
+  await fs.writeFile(cli, `require('readline').createInterface({input:process.stdin}).on('line',s=>{const m=JSON.parse(s);if(!m.id)return;const result=m.method==='initialize'?{}:m.method==='config/read'?{config:{model_provider:'openai'}}:{data:[{model:'a',displayName:'Tư duy',supportedReasoningEfforts:[]}]};const b=Buffer.from(JSON.stringify({id:m.id,result})+'\\n');const found=b.indexOf(Buffer.from('ư'));const cut=found<0?4:found+1;process.stdout.write(b.subarray(0,cut));setTimeout(()=>process.stdout.write(b.subarray(cut)),5)})`)
+  const result = await loadCatalog({ executable: process.execPath, prefixArgs: [cli], codexHome: root, configPath: path.join(root, 'config.toml'), cwd: root, timeoutMs: 1000 })
+  expect(result.models[0].displayName).toBe('Tư duy')
+})

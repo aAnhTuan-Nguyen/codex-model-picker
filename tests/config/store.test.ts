@@ -43,6 +43,13 @@ describe('guarded config store', () => {
     await expect(store.save({ expectedRevision: s.revision, selection: next })).rejects.toThrow()
     expect(await fs.readFile(file, 'utf8')).toContain('model = "old"')
   })
+  it('respects a read-only file instead of replacing it through a writable directory', async () => {
+    await fs.chmod(file, 0o444)
+    try {
+      await expect(store.save({ expectedRevision: (await store.read()).revision, selection: next })).rejects.toThrow()
+      expect(await fs.readFile(file, 'utf8')).toContain('model = "old"')
+    } finally { await fs.chmod(file, 0o600) }
+  })
   it('keeps original and cleans temporary files if rename fails', async () => {
     const blocked = new ConfigStore(file, history, { rename: async () => { throw Object.assign(new Error('locked'), { code: 'EPERM' }) } })
     await expect(blocked.save({ expectedRevision: (await blocked.read()).revision, selection: next })).rejects.toThrow()
@@ -65,6 +72,13 @@ describe('guarded config store', () => {
     const saved = await store.save({ expectedRevision: (await store.read()).revision, selection: next })
     await fs.writeFile(file, 'model="manual"\nmodel_reasoning_effort="high"\n')
     await expect(store.undo({ historyId: saved.historyId, expectedRevision: (await store.read()).revision })).rejects.toMatchObject({ code: 'CONFLICT' })
+  })
+  it('undoes only the keys changed by that save, preserving a later effort edit', async () => {
+    await fs.writeFile(file, 'model="old"\nmodel_reasoning_effort="medium"\n')
+    const saved = await store.save({ expectedRevision: (await store.read()).revision, selection: { model: 'new', effort: { kind: 'keep' } } })
+    await fs.writeFile(file, 'model="new"\nmodel_reasoning_effort="high"\n')
+    await store.undo({ historyId: saved.historyId, expectedRevision: (await store.read()).revision })
+    expect(parse(await fs.readFile(file, 'utf8'))).toEqual({ model: 'old', model_reasoning_effort: 'high' })
   })
   it('rejects corrupt history and history belonging to another config', async () => {
     const saved = await store.save({ expectedRevision: (await store.read()).revision, selection: next })

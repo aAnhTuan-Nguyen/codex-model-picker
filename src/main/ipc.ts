@@ -2,7 +2,8 @@ import { dialog, ipcMain, shell, type BrowserWindow } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { z } from 'zod'
-import { saveSchema, selectionSchema, undoSchema, type CatalogResult, type Result } from '../shared/contracts'
+import type { CatalogResult, Result } from '../shared/contracts'
+import { saveSchema, selectionSchema, undoSchema } from '../shared/validation'
 import { ConfigStore } from './config/store'
 import { ConfigError } from './config/toml'
 import { loadCatalog } from './catalog/client'
@@ -17,6 +18,7 @@ export function installHandlers(win: BrowserWindow, initialPath: string, dataDir
   let store = new ConfigStore(initialPath, path.join(dataDir, 'history'))
   let executable: string | null = null
   let catalog: CatalogResult | null = null
+  const lifecycle = new AbortController()
   const register = (channel: string, schema: z.ZodType, handler: (payload: any) => Promise<unknown>) => {
     ipcMain.handle(channel, async (event, payload): Promise<Result<unknown>> => {
       try {
@@ -30,7 +32,7 @@ export function installHandlers(win: BrowserWindow, initialPath: string, dataDir
     })
   }
   const none = z.undefined()
-  register('picker:read', none, () => store.read())
+  register('picker:read', none, () => { catalog = null; return store.read() })
   register('picker:preview', selectionSchema, s => store.preview(s))
   register('picker:save', saveSchema, async input => {
     if (input.selection.effort.kind === 'set') {
@@ -64,8 +66,11 @@ export function installHandlers(win: BrowserWindow, initialPath: string, dataDir
     if (!executable || path.basename(store.file) !== 'config.toml') return { status: 'unavailable', models: [], message: 'Chọn Codex CLI để lấy các mức suy luận tương thích. Tệp tùy chỉnh cần có tên config.toml.' }
     const cwd = path.join(dataDir, 'catalog')
     await fs.mkdir(cwd, { recursive: true, mode: 0o700 })
-    catalog = await loadCatalog({ executable, codexHome: path.dirname(store.file), configPath: store.file, cwd, timeoutMs: 15000 })
-    return catalog
+    const target = store.file, cli = executable
+    const loaded = await loadCatalog({ executable: cli, codexHome: path.dirname(target), configPath: target, cwd, timeoutMs: 15000, signal: lifecycle.signal })
+    if (store.file !== target || executable !== cli) return { status: 'unavailable', models: [], message: 'Cấu hình đã đổi. Hãy tải lại danh mục.' }
+    catalog = loaded
+    return loaded
   })
-  return () => { for (const name of ['read', 'preview', 'save', 'history', 'undo', 'folder', 'choose', 'choose-cli', 'catalog']) ipcMain.removeHandler('picker:' + name) }
+  return () => { lifecycle.abort(); for (const name of ['read', 'preview', 'save', 'history', 'undo', 'folder', 'choose', 'choose-cli', 'catalog']) ipcMain.removeHandler('picker:' + name) }
 }

@@ -10,7 +10,7 @@ const dataArgument = app.commandLine.getSwitchValue('user-data-dir')
 if (dataArgument) app.setPath('userData', path.resolve(dataArgument))
 app.setAppUserModelId('dev.aanhtuan.codex-model-picker')
 async function createWindow() {
-  win = new BrowserWindow({ title: 'Codex Model Picker', width: 760, height: 752, minWidth: 640, minHeight: 600, backgroundColor: '#171a20', autoHideMenuBar: true,
+  win = new BrowserWindow({ title: 'Codex Model Picker', icon: path.join(app.getAppPath(), 'build/icon.png'), width: 760, height: 752, minWidth: 640, minHeight: 600, backgroundColor: '#171a20', autoHideMenuBar: true,
     webPreferences: { preload: path.join(here, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } })
   const cleanup = installHandlers(win, await resolveConfigPath({ codexHome: process.env.CODEX_HOME, userHome: os.homedir() }), app.getPath('userData'))
   win.on('closed', () => { cleanup(); win = null })

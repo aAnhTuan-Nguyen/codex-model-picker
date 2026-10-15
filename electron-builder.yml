@@ -1,0 +1,23 @@
+appId: dev.aanhtuan.codex-model-picker
+productName: Codex Model Picker
+directories:
+  output: release
+files:
+  - out/**
+  - build/icon.png
+  - package.json
+asar: true
+npmRebuild: false
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: Codex-Model-Picker-${version}-Setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  deleteAppDataOnUninstall: false
+publish: null

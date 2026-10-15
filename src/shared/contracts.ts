@@ -1,4 +1,3 @@
-import { z } from 'zod'
 export type ManagedValues = { model?: string; modelReasoningEffort?: string }
 export type EffortEdit = { kind: 'keep' } | { kind: 'set'; value: string } | { kind: 'unset' }
 export type Selection = { model: string; effort: EffortEdit }
@@ -10,11 +9,6 @@ export type ModelOption = { id: string; displayName: string; efforts: string[] |
 export type CatalogResult = { status: 'available' | 'unavailable'; models: ModelOption[]; message?: string }
 export type AppError = { code: 'INVALID_CONFIG' | 'CONFLICT' | 'UNSAFE_PATH' | 'IO_ERROR' | 'INVALID_SELECTION'; message: string }
 export type Result<T> = { ok: true; data: T } | { ok: false; error: AppError }
-const modelId = z.string().min(1).max(200).regex(/^[^\s\u0000-\u001f\u007f]+$/u)
-export const effortSchema = z.discriminatedUnion('kind', [z.object({ kind: z.literal('keep') }).strict(), z.object({ kind: z.literal('unset') }).strict(), z.object({ kind: z.literal('set'), value: z.string().regex(/^[a-z][a-z0-9_-]{0,40}$/) }).strict()])
-export const selectionSchema = z.object({ model: modelId, effort: effortSchema }).strict()
-export const saveSchema = z.object({ expectedRevision: z.string().min(1).max(64), selection: selectionSchema }).strict()
-export const undoSchema = z.object({ historyId: z.string().uuid(), expectedRevision: z.string().min(1).max(64) }).strict()
 export interface PickerBridge {
   readConfig(): Promise<Result<ConfigSnapshot>>
   chooseConfig(): Promise<Result<ConfigSnapshot | null>>

@@ -54,15 +54,18 @@ export class ConfigStore {
   private checkRevision(snapshot: ConfigSnapshot, expected: string) {
     if (snapshot.revision !== expected) throw new ConfigError('CONFLICT', 'Tệp đã được chỉnh bên ngoài. Tải lại và xem thay đổi trước khi lưu.')
   }
+  private async ensureWritable(exists: boolean): Promise<void> {
+    if (!exists) return
+    if (((await fs.stat(this.file)).mode & 0o222) === 0) throw new ConfigError('IO_ERROR', 'Tệp đang ở chế độ chỉ đọc. Hãy kiểm tra quyền trước khi lưu.')
+    await fs.access(this.file, fs.constants.W_OK)
+  }
   private async commit(current: { bytes: Buffer; snapshot: ConfigSnapshot }, patch: ReturnType<typeof buildPatch>): Promise<SaveResult> {
     if (!patch.preview.changes.length) throw new ConfigError('INVALID_SELECTION', 'Không có thay đổi để lưu.')
     const id = randomUUID()
-    const record: HistoryRecord = { id, createdAt: new Date().toISOString(), displayPath: this.file, ...patch.preview,
-      version: 1, state: 'prepared', beforeRevision: current.snapshot.revision, afterRevision: revisionOf(patch.bytes) }
-    // The preview's changes are not part of the persisted metadata contract.
     const { before, after } = patch.preview
-    const metadata: HistoryRecord = { id, createdAt: record.createdAt, displayPath: this.file, before, after, version: 1, state: 'prepared', beforeRevision: record.beforeRevision, afterRevision: record.afterRevision }
+    const metadata: HistoryRecord = { id, createdAt: new Date().toISOString(), displayPath: this.file, before, after, version: 1, state: 'prepared', beforeRevision: current.snapshot.revision, afterRevision: revisionOf(patch.bytes) }
     const temp = path.join(path.dirname(this.file), `.model-picker-${id}.tmp`)
+    await this.ensureWritable(current.snapshot.exists)
     await fs.mkdir(this.historyDir, { recursive: true, mode: 0o700 })
     await fs.chmod(this.historyDir, 0o700)
     await durableWrite(path.join(this.historyDir, `${id}.toml`), current.bytes)
@@ -76,6 +79,7 @@ export class ConfigStore {
       await durableWrite(temp, patch.bytes)
       await fs.chmod(temp, mode)
       this.checkRevision((await this.load()).snapshot, current.snapshot.revision)
+      await this.ensureWritable(current.snapshot.exists)
       await this.io.rename(temp, this.file)
     } finally { await fs.unlink(temp).catch(e => { if (!isMissing(e)) throw e }) }
     const snapshot = await this.read()
@@ -109,8 +113,10 @@ export class ConfigStore {
       this.checkRevision(current.snapshot, input.expectedRevision)
       const record = await readRecord(this.historyDir, input.historyId)
       if (!samePath(record.displayPath, this.file) || (record.state !== 'applied' && record.afterRevision !== current.snapshot.revision)) throw new ConfigError('CONFLICT', 'Bản ghi không áp dụng cho cấu hình đang chọn.')
-      if (current.snapshot.values.model !== record.after.model || current.snapshot.values.modelReasoningEffort !== record.after.modelReasoningEffort) throw new ConfigError('CONFLICT', 'Model hoặc mức suy luận đã được sửa sau lần lưu này. Không ghi đè thay đổi đó.')
-      return this.commit(current, buildPatch(current.bytes, { model: record.before.model, effort: record.before.modelReasoningEffort === undefined ? { kind: 'unset' } : { kind: 'set', value: record.before.modelReasoningEffort } }))
+      const modelChanged = record.before.model !== record.after.model
+      const effortChanged = record.before.modelReasoningEffort !== record.after.modelReasoningEffort
+      if ((modelChanged && current.snapshot.values.model !== record.after.model) || (effortChanged && current.snapshot.values.modelReasoningEffort !== record.after.modelReasoningEffort)) throw new ConfigError('CONFLICT', 'Mục cần hoàn tác đã được sửa sau lần lưu này. Không ghi đè thay đổi đó.')
+      return this.commit(current, buildPatch(current.bytes, { model: modelChanged ? record.before.model : current.snapshot.values.model, effort: !effortChanged ? { kind: 'keep' } : record.before.modelReasoningEffort === undefined ? { kind: 'unset' } : { kind: 'set', value: record.before.modelReasoningEffort } }))
     })
   }
 }
