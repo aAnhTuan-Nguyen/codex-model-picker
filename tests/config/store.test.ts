@@ -21,6 +21,17 @@ describe('guarded config store', () => {
     expect(await fs.readFile(path.join(history, result.historyId + '.toml'))).toEqual(original)
     expect((await store.listHistory())[0].after.model).toBe('new')
   })
+  it('binds an equivalent native canonical name before reading and saving', async () => {
+    // Two names for one inode model the realpath result of a Windows 8.3 name.
+    // Unlike symlinks, both directory entries are ordinary files.
+    const short = path.join(root, 'alias.toml'); await fs.link(file, short)
+    const canonical = await fs.realpath(file)
+    const alias = new ConfigStore(short, history, { rename: fs.rename, realpath: async value => String(value) === short ? canonical : fs.realpath(value) })
+    const s = await alias.read()
+    expect(s.displayPath).toBe(canonical)
+    await alias.save({ expectedRevision: s.revision, selection: next })
+    expect(parse(await fs.readFile(canonical, 'utf8')).model).toBe('new')
+  })
   it('rejects stale revisions without touching the changed file', async () => {
     const s = await store.read(); await fs.writeFile(file, 'model="someone-else"\n')
     await expect(store.save({ expectedRevision: s.revision, selection: next })).rejects.toMatchObject({ code: 'CONFLICT' })

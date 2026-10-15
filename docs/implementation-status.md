@@ -50,3 +50,7 @@ Khác biệt có chủ đích so với hình concept: nhãn “Trong tệp” th
 ## Việc còn cần xác minh
 
 Theo `docs/windows-validation.md`: chạy installer/app thật trên Windows, scale 125%/150%, locking/ACL Windows, và Codex Desktop có nhận cấu hình trong chat mới/restart hay không. Không tuyên bố đã xác minh các điều này chỉ từ build hoặc renderer test.
+
+## Vòng Windows CI đầu tiên
+
+Run `38693664165` đọc được qua trang Actions công khai dù API bị chặn: job Linux checks đạt, job Windows dừng ở các test store vì tên rút gọn Windows 8.3 khác chuỗi đường dẫn canonical. Đây là lỗi ứng dụng, không bỏ qua test để ép qua. Bản sửa bind đường dẫn canonical một lần sau khi lstat từ chối symlink/junction và kiểm tra cùng inode/device; bao gồm cả parent của file chưa có. Regression alias có test thất bại trước và qua sau sửa; bộ local hiện 43 tests passed. Windows CI sẽ được chạy lại để kiểm tra nền tảng thật. Các thay đổi chỉ trong docs/README không chạy lại build để tránh lãng phí CI.

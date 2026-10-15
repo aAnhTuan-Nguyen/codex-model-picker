@@ -7,20 +7,32 @@ import { durableWrite, publicEntry, readRecord, type HistoryRecord } from './his
 const isMissing = (e: unknown) => (e as NodeJS.ErrnoException).code === 'ENOENT'
 const samePath = (a: string, b: string) => process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b
 export class ConfigStore {
-  readonly file: string
+  private selectedFile: string
+  private bound = false
   private busy = false
-  constructor(file: string, private historyDir: string, private io: { rename: typeof fs.rename } = { rename: fs.rename }) { this.file = path.resolve(file) }
+  get file(): string { return this.selectedFile }
+  constructor(file: string, private historyDir: string, private io: { rename: typeof fs.rename; realpath?: (value: string) => Promise<string> } = { rename: fs.rename }) { this.selectedFile = path.resolve(file) }
   private async safePath(): Promise<void> {
     const { root } = path.parse(this.file)
-    let cursor = root
+    let cursor = root, nearest = root
     for (const part of this.file.slice(root.length).split(path.sep)) {
       cursor = path.join(cursor, part)
       try {
         const stat = await fs.lstat(cursor)
         if (stat.isSymbolicLink() || (!stat.isDirectory() && cursor !== this.file) || (cursor === this.file && !stat.isFile())) throw new ConfigError('UNSAFE_PATH', 'Hãy chọn tệp gốc; không ghi qua liên kết hoặc thư mục.')
+        nearest = cursor
       } catch (e) { if (isMissing(e)) break; throw e }
     }
-    try { if (!samePath(await fs.realpath(this.file), this.file)) throw new ConfigError('UNSAFE_PATH', 'Đường dẫn tệp đã thay đổi. Hãy chọn lại tệp gốc.') } catch (e) { if (!isMissing(e)) throw e }
+    const real = await (this.io.realpath ?? fs.realpath)(nearest)
+    if (!samePath(nearest, real)) {
+      const [selected, canonical] = await Promise.all([fs.stat(nearest), fs.stat(real)])
+      if (selected.dev !== canonical.dev || selected.ino !== canonical.ino) throw new ConfigError('UNSAFE_PATH', 'Đường dẫn không trỏ tới cùng tệp gốc.')
+    }
+    const canonicalFile = path.join(real, path.relative(nearest, this.file))
+    // Windows 8.3 names are normal directory entries, not symlinks. Bind the
+    // native canonical name once (including a missing file's existing parent).
+    if (!this.bound) { this.selectedFile = canonicalFile; this.bound = true }
+    else if (!samePath(canonicalFile, this.file)) throw new ConfigError('UNSAFE_PATH', 'Đường dẫn tệp đã thay đổi. Hãy chọn lại tệp gốc.')
   }
   private async load(): Promise<{ bytes: Buffer; snapshot: ConfigSnapshot }> {
     await this.safePath()
