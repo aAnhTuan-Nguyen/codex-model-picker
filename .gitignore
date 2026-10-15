@@ -1,0 +1,12 @@
+node_modules/
+out/
+dist/
+release/
+coverage/
+test-results/
+playwright-report/
+.superpowers/
+.cache/
+*.log
+.env*
+!.env.example
