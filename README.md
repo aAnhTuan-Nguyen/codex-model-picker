@@ -4,11 +4,11 @@
 
 ![Giao diện thực tế ở chế độ DEV, dữ liệu model chỉ minh họa](docs/images/preview.png)
 
-**Trạng thái:** bản đầu đang được kiểm thử. Công cụ chỉnh `config.toml`, không điều khiển chat đang mở. Tích hợp với Codex Desktop trên máy thật cần được xác minh theo [checklist Windows](docs/windows-validation.md).
+**Trạng thái:** bản đầu đã qua build/test Linux và Windows CI, gồm chạy app từ source và chạy app đã đóng gói. Công cụ chỉnh `config.toml`, không điều khiển chat đang mở. Tích hợp với Codex Desktop trên máy thật cần được xác minh theo [checklist Windows](docs/windows-validation.md).
 
 ## Tải và chạy trên Windows
 
-1. Mở tab **Actions** của repo, chọn lần chạy **Test and build Windows app** thành công trên `main`.
+1. Mở [lần build Windows đã thành công](https://github.com/aAnhTuan-Nguyen/codex-model-picker/actions/runs/38694345549), hoặc chọn một lần chạy **Test and build Windows app** thành công mới hơn trên tab **Actions**.
 2. Trong **Artifacts**, tải `Codex-Model-Picker-Windows-x64`, giải nén rồi chạy `Codex-Model-Picker-0.1.0-Setup.exe`.
 3. Bộ cài chạy theo người dùng hiện tại; không cần cài Node.js hoặc Rust để sử dụng app. Bản thử chưa ký số, không phải bản phát hành chính thức của OpenAI. Không xóa dữ liệu app/backup khi gỡ cài đặt.
 

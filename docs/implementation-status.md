@@ -6,13 +6,13 @@ Ngày 15/10/2026. Kế hoạch: `docs/superpowers/plans/2026-10-15-model-picker.
 
 | Phần | Kết quả |
 | --- | --- |
-| Khung Electron, preload và IPC hẹp | Có, build và kiểm tra preload sandbox; native GUI cần Windows CI |
+| Khung Electron, preload và IPC hẹp | Có, preload sandbox và native GUI trên Windows runner đã qua kiểm tra |
 | Đọc và patch TOML | Có, chỉ sửa hai khóa gốc; giữ chú thích/BOM/CRLF và cấu hình khác |
 | Lưu, backup và hoàn tác | Có, revision check, từ chối read-only/symlink, thay thế qua tệp tạm; hoàn tác đúng khóa đã đổi |
 | Danh mục model tùy chọn | Có, CLI stdio riêng, xác minh home/provider, phân trang, giới hạn dữ liệu/thời gian, không inference |
 | UI và thanh kéo | Có, model combobox, nấc theo metadata, chọn mặc định, diff, lỗi và thành công rõ ràng |
 | File và lịch sử | Có, native file/executable dialog, mở thư mục, preview hoàn tác, không phục hồi nguyên backup đè file mới |
-| Đóng gói Windows và CI | Có cấu hình và test source/packaged app; kết quả runtime Windows chưa được quan sát tại cloud |
+| Đóng gói Windows và CI | Job Linux/Windows đã thành công; có installer artifact và smoke source/packaged app |
 
 Kiểm tra đã chạy sau lượt sửa review: 42 unit/component tests passed, TypeScript và production build passed. Playwright renderer có 4 tests passed; desktop test tại cloud skipped vì không có display/sandbox Linux được hỗ trợ. Các test file chỉ dùng thư mục tạm. Không dùng cấu hình, token hoặc lịch sử Codex thật của người dùng làm dữ liệu test.
 
@@ -54,3 +54,7 @@ Theo `docs/windows-validation.md`: chạy installer/app thật trên Windows, sc
 ## Vòng Windows CI đầu tiên
 
 Run `38693664165` đọc được qua trang Actions công khai dù API bị chặn: job Linux checks đạt, job Windows dừng ở các test store vì tên rút gọn Windows 8.3 khác chuỗi đường dẫn canonical. Đây là lỗi ứng dụng, không bỏ qua test để ép qua. Bản sửa bind đường dẫn canonical một lần sau khi lstat từ chối symlink/junction và kiểm tra cùng inode/device; bao gồm cả parent của file chưa có. Regression alias có test thất bại trước và qua sau sửa; bộ local hiện 43 tests passed. Windows CI sẽ được chạy lại để kiểm tra nền tảng thật. Các thay đổi chỉ trong docs/README không chạy lại build để tránh lãng phí CI.
+
+## Kết quả Windows CI sau sửa
+
+[Run 38694345549](https://github.com/aAnhTuan-Nguyen/codex-model-picker/actions/runs/38694345549) cho code `c0ccbea` đã **Success** ở cả hai job. Windows source E2E, tạo NSIS installer và packaged-app E2E đều qua; artifact `Codex-Model-Picker-Windows-x64` 109 MB đã có trên run. Bản portable ZIP cloud đã được tạo lại sau sửa alias và kiểm tra CRC; checksum nằm ở tài liệu validation. Các phần chưa chạy là cài/gỡ wizard trên Windows 11 của người dùng, scale/ACL cụ thể và tích hợp Codex Desktop thật; không gộp chúng vào kết quả smoke trên runner.
