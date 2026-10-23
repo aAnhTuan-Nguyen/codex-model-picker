@@ -12,9 +12,11 @@ Các kiểm thử được mở rộng để kiểm tra chọn riêng model/reas
 | `npm test` gồm production preload sandbox | 117 passed |
 | Playwright renderer với Chromium hệ thống | 6 passed: mouse/keyboard, save/undo, Max/Ultra riêng biệt, 4 viewport |
 | Desktop E2E trên Linux headless | 1 skipped; không có display hỗ trợ |
-| Windows source/packaged app + NSIS | Đang chờ run mới, không dùng kết quả 0.1.0 thay thế |
+| Windows source/packaged app + NSIS | Qua, artifact 0.2.0 đã tạo |
 
 Browser plugin không có trong phiên này; renderer dùng Playwright/Chromium hệ thống. Kiểm tra thủ công URL/title, màn hình không trống, không framework overlay, console/page errors rỗng và không tràn ngang. Đã xem trực tiếp concept tổng thể, concept thanh kéo và ảnh render thực tế bằng `view_image`; xem cả mobile và dialog. Ảnh README là renderer DEV ở 820×1160 để thấy đủ nội dung; cửa sổ thấp hơn cuộn phần form, giữ Lưu và footer ở dưới. Primary button dùng cam đậm hơn concept để chữ trắng rõ hơn; thanh kéo thay theo ảnh người dùng gửi sau concept. Không đổi sandbox Electron.
+
+[Run 39981244372](https://github.com/aAnhTuan-Nguyen/codex-model-picker/actions/runs/39981244372), runtime commit `e6bb364`: job Windows hoàn tất trong 2 phút 37 giây. Source E2E, NSIS build và packaged-app E2E đều qua; artifact **Codex-Model-Picker-Windows-x64**, 109 MB, chứa `Codex-Model-Picker-0.2.0-Setup.exe`. Digest GitHub công bố: `sha256:4b464a043663cf0794d824f432ca480a8ef3db6866c2df77445f5e05509c55d3`. Job Linux của run đang chờ kết thúc tại thời điểm cập nhật; kết quả Windows và kết quả local được ghi riêng.
 
 Desktop smoke trên Linux không có display phải báo skipped, không coi là passed. Trạng thái build/test của app và trạng thái Codex Desktop thực sự nhận cấu hình trên máy người dùng là hai kết quả riêng.
 

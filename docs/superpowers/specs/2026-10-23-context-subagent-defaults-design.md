@@ -1,6 +1,6 @@
 # Model Picker: context window và mặc định chung cho subagent
 
-Ngày 23/10/2026. Trạng thái: **người dùng yêu cầu triển khai, bỏ preset 1M và giao người thực hiện thiết kế lại UI; đang thực hiện**.
+Ngày 23/10/2026. Trạng thái: **đã triển khai bản 0.2.0, bỏ preset 1M, UI mới và thanh kéo theo ảnh bổ sung; xem kết quả kiểm thử trong docs/windows-validation.md**.
 
 Tài liệu này bổ sung và thay phần giới hạn «chỉ hai khóa gốc, không context» của [thiết kế bản đầu](2026-10-15-model-picker-design.md). Các nguyên tắc bảo toàn cấu hình, sandbox Electron, kiểm tra revision, backup và hoàn tác vẫn áp dụng.
 

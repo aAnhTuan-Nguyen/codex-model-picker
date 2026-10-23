@@ -63,9 +63,11 @@
 - [x] Extend real Electron source/packaged test with five managed paths, Unicode temp directory, preserve external edits and legacy history where practical.
 - [x] Run `npm run typecheck`, `npm test`, renderer Playwright. Record Linux desktop skip separately if display/sandbox unavailable.
 - [x] Request independent final code review; fix important findings with reproduction tests and rerun affected checks.
-- [ ] Refresh README image and exact limits; commit/push authorized main, inspect Windows CI and its installer artifact, fix any real failure. Do not publish a release automatically.
-- [ ] Record QA evidence and remaining real Desktop/scale/install-wizard limitations; hand off the latest successful download link.
+- [x] Refresh README image and exact limits; commit/push authorized main, inspect Windows CI and its installer artifact, fix any real failure. Do not publish a release automatically.
+- [x] Record QA evidence and remaining real Desktop/scale/install-wizard limitations; hand off the latest successful download link.
 
 ## Execution notes
 
 The user delegated UI choices and requested immediate implementation; no additional approval gate was added. Runtime/state and UI were developed in parallel through fixed shared contracts. The complete change will be committed together after integration checks so no intermediate revision ships mismatched bridge/UI types. Three independent-review findings were reproduced and fixed; see implementation-status.md.
+
+Windows job in run 39981244372 passed source and packaged smoke tests and created the 0.2.0 NSIS installer artifact (2m37s). Local final checks: 117 unit/component tests, 6 renderer E2E, typecheck/build passed; native Linux headless was skipped. The same run’s Linux checks job is still in progress at documentation handoff; it is not recorded as passed.
