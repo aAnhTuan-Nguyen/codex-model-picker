@@ -1,5 +1,7 @@
 # Model Picker cho Codex Desktop — thiết kế bản đầu
 
+> Phạm vi mở rộng theo ảnh tham chiếu của người dùng đang được đề xuất tại [thiết kế context và mặc định chung subagent ngày 23/10](2026-10-23-context-subagent-defaults-design.md). Các chức năng mở rộng chưa được triển khai; tài liệu dưới đây ghi phạm vi bản đầu đã làm.
+
 ## Mục tiêu và phạm vi
 
 Ứng dụng desktop độc lập cho Windows, giúp chọn model và kéo mức suy luận rồi lưu cấu hình mặc định. Người dùng chấp nhận mở chat mới, kiểm tra model và có thể cần khởi động lại Codex Desktop. Không cam kết đổi model của chat đang mở. Cơ sở kỹ thuật và nguồn: [ghi chú nghiên cứu](../../model-picker-notes.vi.md).

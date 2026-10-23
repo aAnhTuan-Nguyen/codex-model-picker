@@ -1,5 +1,9 @@
 # Trạng thái triển khai
 
+## Phạm vi sửa đổi ngày 23/10/2026
+
+Người dùng đã chỉ rõ bản đầu thiếu context window và cấu hình subagent trong ảnh tham chiếu, đồng thời xác nhận muốn một bộ model/reasoning mặc định chung cho subagent. [Thiết kế bổ sung](superpowers/specs/2026-10-23-context-subagent-defaults-design.md) đã được viết và rà soát độc lập; reviewer không còn câu hỏi quan trọng để lập kế hoạch. **Các chức năng bổ sung vẫn là đề xuất chờ duyệt thiết kế, chưa có trong code hoặc bộ cài hiện tại.** Không coi kết quả CI bản đầu bên dưới là kiểm chứng các tính năng mới.
+
 Ngày 15/10/2026. Kế hoạch: `docs/superpowers/plans/2026-10-15-model-picker.md`.
 
 ## Phần đã triển khai
