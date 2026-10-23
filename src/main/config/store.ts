@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
-import type { ChangePreview, ConfigSnapshot, HistoryEntry, SaveResult, Selection } from '../../shared/contracts'
+import type { ChangePreview, ConfigSnapshot, HistoryEntry, ManagedValues, SaveResult, Selection, ValueEdit } from '../../shared/contracts'
+import { managedFields } from '../../shared/values'
 import { buildPatch, ConfigError, parseSnapshot, revisionOf } from './toml'
 import { durableWrite, publicEntry, readRecord, type HistoryRecord } from './history'
 const isMissing = (e: unknown) => (e as NodeJS.ErrnoException).code === 'ENOENT'
@@ -75,7 +76,7 @@ export class ConfigStore {
     if (!patch.preview.changes.length) throw new ConfigError('INVALID_SELECTION', 'Không có thay đổi để lưu.')
     const id = randomUUID()
     const { before, after } = patch.preview
-    const metadata: HistoryRecord = { id, createdAt: new Date().toISOString(), displayPath: this.file, before, after, version: 1, state: 'prepared', beforeRevision: current.snapshot.revision, afterRevision: revisionOf(patch.bytes) }
+    const metadata: HistoryRecord = { id, createdAt: new Date().toISOString(), displayPath: this.file, before, after, version: 2, state: 'prepared', beforeRevision: current.snapshot.revision, afterRevision: revisionOf(patch.bytes) }
     const temp = path.join(path.dirname(this.file), `.model-picker-${id}.tmp`)
     await this.ensureWritable(current.snapshot.exists)
     await fs.mkdir(this.historyDir, { recursive: true, mode: 0o700 })
@@ -125,10 +126,16 @@ export class ConfigStore {
       this.checkRevision(current.snapshot, input.expectedRevision)
       const record = await readRecord(this.historyDir, input.historyId)
       if (!samePath(record.displayPath, this.file) || (record.state !== 'applied' && record.afterRevision !== current.snapshot.revision)) throw new ConfigError('CONFLICT', 'Bản ghi không áp dụng cho cấu hình đang chọn.')
-      const modelChanged = record.before.model !== record.after.model
-      const effortChanged = record.before.modelReasoningEffort !== record.after.modelReasoningEffort
-      if ((modelChanged && current.snapshot.values.model !== record.after.model) || (effortChanged && current.snapshot.values.modelReasoningEffort !== record.after.modelReasoningEffort)) throw new ConfigError('CONFLICT', 'Mục cần hoàn tác đã được sửa sau lần lưu này. Không ghi đè thay đổi đó.')
-      return this.commit(current, buildPatch(current.bytes, { model: modelChanged ? record.before.model : current.snapshot.values.model, effort: !effortChanged ? { kind: 'keep' } : record.before.modelReasoningEffort === undefined ? { kind: 'unset' } : { kind: 'set', value: record.before.modelReasoningEffort } }))
+      const before: ManagedValues = record.before, after: ManagedValues = record.after
+      for (const { property } of managedFields) if (before[property] !== after[property] && current.snapshot.values[property] !== after[property]) throw new ConfigError('CONFLICT', 'Mục cần hoàn tác đã được sửa sau lần lưu này. Không ghi đè thay đổi đó.')
+      const restore = <T>(previous: T | undefined, saved: T | undefined): ValueEdit<T> => previous === saved ? { kind: 'keep' } : previous === undefined ? { kind: 'unset' } : { kind: 'set', value: previous }
+      return this.commit(current, buildPatch(current.bytes, {
+        model: before.model !== after.model ? before.model : current.snapshot.values.model,
+        effort: restore(before.modelReasoningEffort, after.modelReasoningEffort),
+        contextWindow: restore(before.modelContextWindow, after.modelContextWindow),
+        subagentModel: restore(before.subagentModel, after.subagentModel),
+        subagentEffort: restore(before.subagentReasoningEffort, after.subagentReasoningEffort)
+      }))
     })
   }
 }

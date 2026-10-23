@@ -1,7 +1,7 @@
 {
   "name": "codex-model-picker",
-  "version": "0.1.0",
-  "description": "A careful model and reasoning picker for Codex configuration",
+  "version": "0.2.0",
+  "description": "A model, context and shared subagent defaults picker for Codex configuration",
   "author": "aAnhTuan-Nguyen",
   "private": true,
   "license": "UNLICENSED",

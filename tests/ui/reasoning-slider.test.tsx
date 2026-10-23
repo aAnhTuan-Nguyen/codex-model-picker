@@ -19,3 +19,17 @@ it('does not invent a slider when capabilities are unknown or singular', () => {
   expect(screen.queryByRole('slider')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'High' })).toBeInTheDocument()
 })
+it('selects distinct Ultra and Max values when the model advertises them', () => {
+  const change = vi.fn()
+  const extended = { ...model, efforts: ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] }
+  const { rerender } = render(<ReasoningSlider model={extended} effort={{ kind: 'set', value: 'high' }} onChange={change}/>)
+  const slider = screen.getByRole('slider', { name: 'Mức suy luận' })
+  fireEvent.keyDown(slider, { key: 'End' })
+  expect(change).toHaveBeenLastCalledWith({ kind: 'set', value: 'ultra' })
+  rerender(<ReasoningSlider model={extended} effort={{ kind: 'set', value: 'ultra' }} onChange={change}/>)
+  expect(slider).toHaveAttribute('aria-valuetext', 'Ultra')
+  fireEvent.keyDown(slider, { key: 'ArrowLeft' })
+  expect(change).toHaveBeenLastCalledWith({ kind: 'set', value: 'max' })
+  rerender(<ReasoningSlider model={extended} effort={{ kind: 'set', value: 'max' }} onChange={change}/>)
+  expect(slider).toHaveAttribute('aria-valuetext', 'Max')
+})

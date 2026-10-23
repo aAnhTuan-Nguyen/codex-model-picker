@@ -7,6 +7,7 @@ import { saveSchema, selectionSchema, undoSchema } from '../shared/validation'
 import { ConfigStore } from './config/store'
 import { ConfigError } from './config/toml'
 import { loadCatalog } from './catalog/client'
+import { assertSupportedEfforts } from './catalog/selection'
 async function findCli(): Promise<string | null> {
   for (const directory of (process.env.PATH ?? '').split(path.delimiter)) {
     const file = path.join(directory, process.platform === 'win32' ? 'codex.exe' : 'codex')
@@ -35,10 +36,8 @@ export function installHandlers(win: BrowserWindow, initialPath: string, dataDir
   register('picker:read', none, () => { catalog = null; return store.read() })
   register('picker:preview', selectionSchema, s => store.preview(s))
   register('picker:save', saveSchema, async input => {
-    if (input.selection.effort.kind === 'set') {
-      const model = catalog?.models.find(m => m.id === input.selection.model)
-      if (!model?.efforts?.includes(input.selection.effort.value)) throw new ConfigError('INVALID_SELECTION', 'Chưa xác minh mức suy luận này cho model. Tải lại danh mục hoặc dùng mặc định Codex.')
-    }
+    const current = await store.read()
+    assertSupportedEfforts(input.selection, current.values, catalog)
     return store.save(input)
   })
   register('picker:history', none, () => store.listHistory())

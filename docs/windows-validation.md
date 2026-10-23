@@ -1,4 +1,24 @@
-# Kiểm thử và giới hạn của bản đầu
+# Kiểm thử và giới hạn
+
+## Bản 0.2.0 ngày 23/10/2026
+
+Đã triển khai context window, một bộ model/reasoning chung cho subagent và giao diện sáng cam san hô/xanh ngọc. Không có preset 1M; cấu hình tùy chỉnh có sẵn vẫn được giữ nguyên. Thanh kéo liền gradient xanh, thumb trắng lớn, tên mức/model theo ảnh bổ sung của người dùng; Max và Ultra theo danh mục model.
+
+Các kiểm thử được mở rộng để kiểm tra chọn riêng model/reasoning chính và phụ, context radio, explicit save/undo, dữ liệu lịch sử v1 và v2. Renderer kiểm tra 820×920, 760×720, 640×600 và 390×844, bàn phím/chuột, reduced motion, nút lưu luôn với tới được và không tràn ngang. Desktop smoke dùng file tạm với đủ năm đường dẫn quản lý, chú thích CRLF, đường dẫn Unicode, ngưỡng compact, mục agents/vai trò khác và sửa đổi thủ công sau lưu.
+
+| Kiểm tra bản 0.2.0 trong cloud | Kết quả |
+| --- | --- |
+| `npm run typecheck` và production build | Qua |
+| `npm test` gồm production preload sandbox | 117 passed |
+| Playwright renderer với Chromium hệ thống | 6 passed: mouse/keyboard, save/undo, Max/Ultra riêng biệt, 4 viewport |
+| Desktop E2E trên Linux headless | 1 skipped; không có display hỗ trợ |
+| Windows source/packaged app + NSIS | Đang chờ run mới, không dùng kết quả 0.1.0 thay thế |
+
+Browser plugin không có trong phiên này; renderer dùng Playwright/Chromium hệ thống. Kiểm tra thủ công URL/title, màn hình không trống, không framework overlay, console/page errors rỗng và không tràn ngang. Đã xem trực tiếp concept tổng thể, concept thanh kéo và ảnh render thực tế bằng `view_image`; xem cả mobile và dialog. Ảnh README là renderer DEV ở 820×1160 để thấy đủ nội dung; cửa sổ thấp hơn cuộn phần form, giữ Lưu và footer ở dưới. Primary button dùng cam đậm hơn concept để chữ trắng rõ hơn; thanh kéo thay theo ảnh người dùng gửi sau concept. Không đổi sandbox Electron.
+
+Desktop smoke trên Linux không có display phải báo skipped, không coi là passed. Trạng thái build/test của app và trạng thái Codex Desktop thực sự nhận cấu hình trên máy người dùng là hai kết quả riêng.
+
+## Kết quả lịch sử bản 0.1.0
 
 Ngày: 15/10/2026. Các kết quả dưới đây phân biệt source/build, UI mô phỏng, app desktop và tích hợp Codex Desktop.
 
@@ -48,10 +68,10 @@ XDG_CACHE_HOME=/tmp/codex-model-picker-cache ELECTRON_BUILDER_CACHE=/tmp/codex-m
 
 1. Ghi phiên bản Codex Desktop, CLI (nếu có), provider và đường dẫn `config.toml` đang dùng.
 2. Cài app từ artifact của run Windows thành công; mở/đóng/mở lại, xác nhận chỉ mở app không sửa file.
-3. Dùng hai model tài khoản có quyền truy cập. Chọn model, kéo effort được hỗ trợ, kiểm tra preview rồi lưu.
-4. Kiểm tra lần lượt chat đang mở nhưng rảnh, chat mới, và chat mới sau restart. Ghi rõ trường hợp nào nhận thay đổi; không mặc định tất cả đều nhận.
+3. Dùng hai model tài khoản có quyền truy cập. Chọn model chính và model mặc định subagent khác nhau, kéo cả hai effort được hỗ trợ, chọn context 272K/500K/872K hoặc mặc định, kiểm tra preview rồi lưu. Xác nhận không có lựa chọn 1M và ngưỡng compact cũ không bị sửa.
+4. Kiểm tra lần lượt chat đang mở nhưng rảnh, chat mới, và chat mới sau restart. Trong chat mới, kiểm tra cả agent chính và subagent mới. Ghi rõ trường hợp nào nhận thay đổi; không mặc định tất cả đều nhận. Không suy ra dung lượng context thật chỉ từ giá trị app đã ghi.
 5. Thử chế độ thường và Plan nếu có dùng. Kiểm tra profile/client có ưu tiên lựa chọn riêng không.
-6. Tự sửa một mục khác trong file rồi tải lại/hoàn tác; mục đó phải còn nguyên. Sửa chính model mà tool vừa đổi: hoàn tác phải báo xung đột.
+6. Tự sửa một mục khác trong file hoặc bảng `agents` rồi tải lại/hoàn tác; mục đó phải còn nguyên. Sửa chính khóa mà tool vừa đổi: hoàn tác phải báo xung đột. Thử bản ghi lịch sử 0.1.0 để xác nhận context/subagent thêm sau đó không bị xóa.
 7. Thử file chỉ đọc, file đang bị khóa, đường dẫn Unicode, backup lỗi, cửa sổ nhỏ và scale 125%/150%.
 
 Chỉ sau bước 4–5 mới có thể ghi nhận hành vi tích hợp với phiên bản Desktop cụ thể. Thành công khi app ghi TOML không chứng minh chat đang mở dùng model đã chọn.

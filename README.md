@@ -1,15 +1,15 @@
 # Codex Model Picker
 
-Ứng dụng Windows độc lập để chọn model và kéo mức suy luận cho cấu hình mặc định Codex. Giao diện tối, xem trước thay đổi, sao lưu và hoàn tác từng mục.
+Ứng dụng Windows độc lập để chọn model chính, kéo mức suy luận, đặt context window và một bộ model/reasoning mặc định chung cho subagent. Giao diện sáng với màu cam san hô và xanh ngọc; xem trước thay đổi, sao lưu và hoàn tác từng mục.
 
 ![Giao diện thực tế ở chế độ DEV, dữ liệu model chỉ minh họa](docs/images/preview.png)
 
-**Trạng thái:** bản đầu đã qua build/test Linux và Windows CI, gồm chạy app từ source và chạy app đã đóng gói. Công cụ chỉnh `config.toml`, không điều khiển chat đang mở. Tích hợp với Codex Desktop trên máy thật cần được xác minh theo [checklist Windows](docs/windows-validation.md).
+**Trạng thái bản 0.2.0:** đã triển khai, qua typecheck/build, 117 unit/component tests và 6 renderer E2E; đang đợi Windows CI xác minh bộ cài mới. Các kết quả Windows CI của bản 0.1.0 không chứng minh tính năng mới đã chạy được; xem [kết quả kiểm thử hiện tại](docs/windows-validation.md). Công cụ chỉnh `config.toml`, không điều khiển chat đang mở. Tích hợp với Codex Desktop trên máy thật cần được xác minh riêng.
 
 ## Tải và chạy trên Windows
 
-1. Mở [lần build Windows đã thành công](https://github.com/aAnhTuan-Nguyen/codex-model-picker/actions/runs/38694345549), hoặc chọn một lần chạy **Test and build Windows app** thành công mới hơn trên tab **Actions**.
-2. Trong **Artifacts**, tải `Codex-Model-Picker-Windows-x64`, giải nén rồi chạy `Codex-Model-Picker-0.1.0-Setup.exe`.
+1. Mở [Actions — Test and build Windows app](https://github.com/aAnhTuan-Nguyen/codex-model-picker/actions/workflows/ci.yml), chọn lần chạy thành công cho bản **0.2.0**. Khi bản mới đang kiểm chứng, đợi kết quả build; không tải nhầm bản 0.1.0 nếu cần context và subagent.
+2. Trong **Artifacts**, tải `Codex-Model-Picker-Windows-x64`, giải nén rồi chạy `Codex-Model-Picker-0.2.0-Setup.exe`.
 3. Bộ cài chạy theo người dùng hiện tại; không cần cài Node.js hoặc Rust để sử dụng app. Bản thử chưa ký số, không phải bản phát hành chính thức của OpenAI. Không xóa dữ liệu app/backup khi gỡ cài đặt.
 
 Artifact chỉ xuất hiện khi job Windows build và smoke-test thành công. Không coi việc source đã được push là bằng chứng bộ cài đã được tạo.
@@ -18,9 +18,13 @@ Artifact chỉ xuất hiện khi job Windows build và smoke-test thành công. 
 
 1. Hoàn thành tác vụ Codex đang chạy và tránh chỉnh cùng file trong lúc lưu.
 2. Mở app, kiểm tra **Vị trí cấu hình**. Mặc định là `CODEX_HOME/config.toml`, hoặc thư mục `.codex` trong home người dùng. Windows và WSL có thể dùng hai file khác nhau.
-3. Chọn model. Nếu CLI cung cấp danh mục tương thích, kéo thanh mức suy luận đến nấc mong muốn; cũng có thể chọn **Theo mặc định Codex**.
-4. Xem các giá trị trước/sau. Chỉ khi bấm **Lưu mặc định**, file mới được ghi và sao lưu.
-5. Mở chat mới trong Codex, kiểm tra model trước khi gửi. Nếu chưa nhận thay đổi, đóng/mở lại Codex sau khi tác vụ hiện tại kết thúc rồi kiểm tra lại. Desktop/profile/Plan có thể ghi đè mặc định này.
+3. Trong **Agent chính**, chọn model. Nếu CLI cung cấp danh mục tương thích, kéo thanh mức suy luận đến nấc mong muốn; có thể để **Mặc định Codex**.
+4. Trong **Context window**, chọn mặc định, **272K**, **500K** hoặc **872K**. Đây là cấu hình phía client, không mở khóa giới hạn dịch vụ. Giá trị tùy chỉnh sẵn trong file được giữ nguyên; không có preset 1M. App giữ nguyên ngưỡng tự thu gọn lịch sử `model_auto_compact_token_limit` bạn đã đặt.
+5. Trong **Subagent**, chọn model và kéo reasoning riêng nếu muốn. Đây là **một bộ mặc định chung cho agent phụ mới**, độc lập với agent chính. Để **Mặc định Codex** để bỏ lựa chọn riêng; vai trò hoặc lệnh tạo agent có thể ghi đè các mặc định này.
+6. Xem các giá trị trước/sau. Chỉ khi bấm **Lưu mặc định**, file mới được ghi và sao lưu.
+7. Mở chat mới trong Codex, kiểm tra model và subagent mới trước khi dùng. Nếu chưa nhận thay đổi, đóng/mở lại Codex sau khi tác vụ hiện tại kết thúc rồi kiểm tra lại. Desktop/profile/Plan có thể ghi đè mặc định này; phiên bản Codex cần hỗ trợ các khóa cấu hình tương ứng.
+
+Thanh kéo liền có nút trắng lớn, tên mức và model như bộ chọn Codex. Các mức vẫn là giá trị rời rạc theo danh mục thực tế. **Max** và **Ultra** xuất hiện khi model quảng bá hỗ trợ chúng; app lưu đúng `max`/`ultra`, không đổi thành XHigh hoặc thêm mức giả. Codex tự xử lý ý nghĩa Ultra theo model/chế độ; ảnh DEV chỉ minh họa danh mục, không bảo đảm quyền dùng model.
 
 **Đã lưu cấu hình** không có nghĩa **chat đang mở đã đổi model**. Tool không mở khóa model hoặc tăng giới hạn context của dịch vụ.
 
@@ -38,7 +42,9 @@ Bạn vẫn tự sửa file bất kỳ lúc nào. Dùng **Tải lại** trong ap
 
 **Lịch sử / Hoàn tác** chỉ hoàn tác các mục mà lần lưu đó đã đổi. Các mục khác, kể cả effort bạn sửa sau một lần chỉ đổi model, được giữ lại. Nếu chính mục cần hoàn tác đã được sửa tiếp, app báo xung đột. Backup gốc không được chép đè toàn bộ lên file mới.
 
-App giữ chú thích, UTF-8 BOM và CRLF/LF; chỉ quản lý hai khóa gốc `model`, `model_reasoning_effort`. Không sửa provider, profile, quyền chạy lệnh, context, bộ cài Codex, đăng nhập hay lịch sử chat. Các phiên Codex đọc chung file này về sau có thể nhận mặc định mới.
+App giữ chú thích, UTF-8 BOM và CRLF/LF; chỉ quản lý năm đường dẫn `model`, `model_reasoning_effort`, `model_context_window`, `agents.default_subagent_model`, `agents.default_subagent_reasoning_effort`. Các mục khác trong bảng `agents`, provider, profile, quyền chạy lệnh, ngưỡng compact, bộ cài Codex, đăng nhập và lịch sử chat được giữ nguyên. Các phiên Codex đọc chung file này về sau có thể nhận mặc định mới.
+
+Lịch sử bản 0.1.0 vẫn được đọc. Hoàn tác bản ghi cũ chỉ hoàn tác các mục lần đó đã đổi; không xóa context hoặc cấu hình subagent được thêm về sau. Khi TOML hợp lệ nhưng có cấu trúc app không thể sửa an toàn, app từ chối lưu và nêu lỗi thay vì viết lại cả file.
 
 Backup và metadata nằm trong thư mục `history` dưới Electron userData (Windows mặc định `%APPDATA%\codex-model-picker`). Backup là toàn bộ file gốc, có thể chứa cấu hình riêng tư của bạn: app không đẩy chúng lên GitHub, không hiển thị nội dung backup, và tạo tệp với quyền riêng người dùng. Các lần chọn file/CLI thủ công hiện chỉ áp dụng trong phiên mở app; lần mở kế tiếp phát hiện lại mặc định.
 
@@ -79,8 +85,9 @@ Nếu npm không ghi được cache trong home của cloud, dùng `npm_config_ca
 
 ## Tài liệu
 
-- [Thiết kế UI và hành vi](docs/superpowers/specs/2026-10-15-model-picker-design.md)
-- [Kế hoạch triển khai](docs/superpowers/plans/2026-10-15-model-picker.md)
+- [Thiết kế context, subagent và giao diện mới](docs/superpowers/specs/2026-10-23-context-subagent-defaults-design.md)
+- [Kế hoạch triển khai bản 0.2.0](docs/superpowers/plans/2026-10-23-context-subagent-refresh.md)
+- [Thiết kế bản đầu](docs/superpowers/specs/2026-10-15-model-picker-design.md)
 - [Nghiên cứu giao thức và giới hạn Desktop](docs/model-picker-notes.vi.md)
 - [Kết quả kiểm thử và việc cần xác minh trên Windows](docs/windows-validation.md)
 - [Trạng thái triển khai và review](docs/implementation-status.md)

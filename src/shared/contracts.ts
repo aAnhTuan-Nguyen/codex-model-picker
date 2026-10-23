@@ -1,8 +1,10 @@
-export type ManagedValues = { model?: string; modelReasoningEffort?: string }
-export type EffortEdit = { kind: 'keep' } | { kind: 'set'; value: string } | { kind: 'unset' }
-export type Selection = { model: string; effort: EffortEdit }
+export type ManagedValues = { model?: string; modelReasoningEffort?: string; modelContextWindow?: number; subagentModel?: string; subagentReasoningEffort?: string }
+export type ValueEdit<T> = { kind: 'keep' } | { kind: 'set'; value: T } | { kind: 'unset' }
+export type EffortEdit = ValueEdit<string>
+export type Selection = { model: string; effort: EffortEdit; contextWindow?: ValueEdit<number>; subagentModel?: ValueEdit<string>; subagentEffort?: EffortEdit }
+export type ManagedKey = 'model' | 'model_reasoning_effort' | 'model_context_window' | 'agents.default_subagent_model' | 'agents.default_subagent_reasoning_effort'
 export type ConfigSnapshot = { revision: string; values: ManagedValues; warnings: string[]; exists: boolean; displayPath: string }
-export type ChangePreview = { before: ManagedValues; after: ManagedValues; changes: { key: 'model' | 'model_reasoning_effort'; before?: string; after?: string }[] }
+export type ChangePreview = { before: ManagedValues; after: ManagedValues; changes: { key: ManagedKey; before?: string | number; after?: string | number }[] }
 export type SaveResult = { snapshot: ConfigSnapshot; historyId: string }
 export type HistoryEntry = { id: string; createdAt: string; displayPath: string; before: ManagedValues; after: ManagedValues }
 export type ModelOption = { id: string; displayName: string; efforts: string[] | null; defaultEffort: string | null; source: 'cli' | 'current-config' | 'manual' }

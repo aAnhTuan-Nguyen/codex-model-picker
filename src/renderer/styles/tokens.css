@@ -1,3 +1,39 @@
-:root{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#edf0f6;background:#171a20;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--bg:#171a20;--surface:#1d2128;--raised:#232831;--border:#343b47;--border-soft:#2b313b;--text:#edf0f6;--muted:#9da8b9;--accent:#8bc7ff;--accent-strong:#a8d5ff;--success:#74c996;--error:#f0a6a6;--radius:9px;--space:8px;color-scheme:dark}
-*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:default}button,a,input{ -webkit-tap-highlight-color:transparent}button{transition:background .15s,border-color .15s,color .15s,opacity .15s}button:focus-visible,input:focus-visible,[role=slider]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}button:disabled{opacity:.42}button:disabled:focus{outline:none}svg{flex-shrink:0}button svg{pointer-events:none}::selection{background:#355675}::-webkit-scrollbar{width:7px}::-webkit-scrollbar-thumb{background:#3b4350;border-radius:8px}::-webkit-scrollbar-track{background:transparent}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+:root {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+  --bg: #f6f3eb;
+  --surface: #fff;
+  --raised: #f0f4ee;
+  --border: #d4dcd6;
+  --border-soft: #e5e8e1;
+  --text: #203d37;
+  --muted: #65776d;
+  --accent: #247b69;
+  --accent-strong: #17634f;
+  --coral: #e97950;
+  --action: #bd4828;
+  --success: #277454;
+  --error: #ad382d;
+  --radius: 16px;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box }
+body { margin: 0 }
+button, input { font: inherit }
+button { cursor: pointer; transition: background 160ms, border-color 160ms, color 160ms, box-shadow 160ms, transform 160ms }
+button:disabled { cursor: default; opacity: .48 }
+button, a, input { -webkit-tap-highlight-color: transparent }
+button:focus-visible, input:focus-visible, summary:focus-visible, [role=slider]:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px }
+svg { flex-shrink: 0 }
+button svg { pointer-events: none }
+::selection { background: #c9e7dd; color: #173f32 }
+::-webkit-scrollbar { width: 6px }
+::-webkit-scrollbar-thumb { background: #becdc3; border-radius: 8px }
+::-webkit-scrollbar-track { background: transparent }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important }
+}

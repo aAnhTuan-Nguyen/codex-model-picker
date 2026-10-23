@@ -2,7 +2,19 @@
 
 ## Phạm vi sửa đổi ngày 23/10/2026
 
-Người dùng đã chỉ rõ bản đầu thiếu context window và cấu hình subagent trong ảnh tham chiếu, đồng thời xác nhận muốn một bộ model/reasoning mặc định chung cho subagent. [Thiết kế bổ sung](superpowers/specs/2026-10-23-context-subagent-defaults-design.md) đã được viết và rà soát độc lập; reviewer không còn câu hỏi quan trọng để lập kế hoạch. **Các chức năng bổ sung vẫn là đề xuất chờ duyệt thiết kế, chưa có trong code hoặc bộ cài hiện tại.** Không coi kết quả CI bản đầu bên dưới là kiểm chứng các tính năng mới.
+Người dùng đã chỉ rõ bản đầu thiếu context window và cấu hình subagent trong ảnh tham chiếu, xác nhận muốn **một bộ model/reasoning mặc định chung cho subagent**, yêu cầu bỏ preset **1M** và giao người thực hiện làm lại UI đẹp, sinh động hơn. [Thiết kế bổ sung](superpowers/specs/2026-10-23-context-subagent-defaults-design.md) đã được cập nhật; [kế hoạch 0.2.0](superpowers/plans/2026-10-23-context-subagent-refresh.md) đang được thực hiện trên checkout hiện tại.
+
+Bản 0.2.0 dùng giao diện sáng kem/cam san hô/xanh ngọc, thêm context và mặc định subagent vào preview/save/undo, mở rộng metadata lịch sử sang v2 nhưng đọc được v1. **Typecheck/build và 117 unit/component tests đã qua; Windows CI cho bộ cài mới đang chờ.** Playwright renderer có 6 tests passed, gồm chuột/bàn phím, context/subagent độc lập, explicit save/undo, Ultra/Max và bốn viewport. Desktop test cloud Linux headless báo 1 skipped. Không coi kết quả bản đầu bên dưới là kiểm chứng các tính năng mới. Không thêm preset 1M hoặc tự sửa ngưỡng compact.
+
+Review độc lập phát hiện hai Important và một Minor; cả ba được tái hiện bằng test RED rồi sửa, reviewer kiểm tra lại không còn Important:
+
+1. TOML `500000.0`/`5e5` thành JS integer nhưng Codex cần TOML integer: kiểm tra AST kind; giữ các literal integer hợp lệ.
+2. Chọn mặc định model subagent lúc chưa biết khả năng model cha tự bỏ effort: giữ effort riêng khi metadata kế thừa chưa biết.
+3. Guard IPC effort mới cần giống main: xác minh explicit effort cho cả main và effective subagent model; keep/unset vẫn dùng offline được.
+
+Có thêm regression cho catalog đến muộn sau save không làm sống lại effort đã bỏ, và đọc/undo history v1 không xóa context/subagent mới. Hàng lịch sử nay tóm tắt đúng mọi mục thay đổi, giải quyết ghi chú Minor của bản đầu. Hai yêu cầu UI bổ sung trong lúc làm: slider liền gradient/white thumb theo ảnh Codex; Max/Ultra chỉ theo catalog và lưu đúng giá trị. Dữ liệu tên model/effort demo chỉ thuộc DEV, không nằm trong production bundle. Browser plugin không có: dùng Playwright/Chromium hệ thống, không tắt sandbox Electron; đã xem concept và ảnh desktop/mobile/dialog trực tiếp, README dùng ảnh DEV minh họa.
+
+## Lịch sử triển khai bản 0.1.0
 
 Ngày 15/10/2026. Kế hoạch: `docs/superpowers/plans/2026-10-15-model-picker.md`.
 

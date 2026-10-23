@@ -1,6 +1,6 @@
 # Model Picker: context window và mặc định chung cho subagent
 
-Ngày 23/10/2026. Trạng thái: **thiết kế đề xuất, chờ người dùng duyệt; chưa triển khai các tính năng bổ sung**.
+Ngày 23/10/2026. Trạng thái: **người dùng yêu cầu triển khai, bỏ preset 1M và giao người thực hiện thiết kế lại UI; đang thực hiện**.
 
 Tài liệu này bổ sung và thay phần giới hạn «chỉ hai khóa gốc, không context» của [thiết kế bản đầu](2026-10-15-model-picker-design.md). Các nguyên tắc bảo toàn cấu hình, sandbox Electron, kiểm tra revision, backup và hoàn tác vẫn áp dụng.
 
@@ -41,11 +41,11 @@ Giữ model combobox và reasoning slider theo metadata Codex CLI đã có. Thay
 
 ### Context window
 
-Hiển thị các lựa chọn **Mặc định Codex**, **272K**, **500K**, **872K**, **1M** tương ứng bỏ khóa, 272000, 500000, 872000 và 1000000 token. Đây là các preset cấu hình phía client theo ảnh tham chiếu, không phải chứng nhận model nào cũng hỗ trợ từng giá trị.
+Hiển thị các lựa chọn **Mặc định Codex**, **272K**, **500K**, **872K** tương ứng bỏ khóa, 272000, 500000 và 872000 token. Người dùng đã yêu cầu bỏ preset 1M. Đây là các preset cấu hình phía client theo ảnh tham chiếu, không phải chứng nhận model nào cũng hỗ trợ từng giá trị.
 
 Nếu file có giá trị khác, hiển thị giá trị đang có dưới nhãn **Tùy chỉnh trong tệp**, giữ nguyên cho đến khi người dùng chọn preset hoặc mặc định. Không làm tròn hoặc đổi giá trị khi tải/reset. Chấp nhận số nguyên dương trong phạm vi số nguyên an toàn của JavaScript; cấu hình ngoài kiểu/phạm vi xử lý được phải báo lỗi trước ghi.
 
-Luôn có mô tả ngắn: **«Giới hạn cấu hình phía Codex; dung lượng thực tế phụ thuộc model/dịch vụ.»** Không gọi việc chọn 1M là mở khóa context. Không chặn chỉ vì không có metadata giới hạn thật; ghi rõ chưa xác minh khả năng thực tế. Khi đổi model chính, giữ lựa chọn context và hiển thị lại lưu ý, không tự đổi context theo phỏng đoán.
+Luôn có mô tả ngắn: **«Giới hạn cấu hình phía Codex; dung lượng thực tế phụ thuộc model/dịch vụ.»** Không gọi preset là mở khóa context. Không chặn chỉ vì không có metadata giới hạn thật; ghi rõ chưa xác minh khả năng thực tế. Khi đổi model chính, giữ lựa chọn context và hiển thị lại lưu ý, không tự đổi context theo phỏng đoán. Nếu file đã có 1000000 thì chỉ bảo toàn như giá trị tùy chỉnh, không cung cấp nút chọn 1M.
 
 ### Mặc định chung cho subagent
 
@@ -61,9 +61,13 @@ Không bật multi-agent, đổi concurrency, tạo file vai trò hoặc thêm c
 
 ## Giao diện
 
-Mở rộng màn hình hiện có thành các nhóm theo thứ tự ảnh: **Main model → Reasoning effort → Context window → Subagent settings → Thay đổi dự kiến**. Giữ bảng màu tối, một màu nhấn xanh, typography và khoảng cách nhất quán. Main và subagent đều dùng thanh kéo nấc rời rạc, hỗ trợ chuột và bàn phím.
+Mở rộng màn hình hiện có thành các nhóm theo thứ tự ảnh: **Main model → Reasoning effort → Context window → Subagent settings → Thay đổi dự kiến**. Theo yêu cầu mới, đổi sang nền kem sáng, surface trắng, chữ xanh rừng, accent cam san hô và xanh ngọc; sinh động, thân thiện và đọc rõ. Main và subagent đều dùng thanh kéo, hỗ trợ chuột và bàn phím.
 
-Đây là quyết định giao diện được đề xuất: radio cho context; lựa chọn mặc định hiện rõ; thông tin kỹ thuật chi tiết nằm trong phần giải thích thu gọn thay vì chiếm toàn màn hình. Giữ vùng Lưu/Bỏ thay đổi ở dưới, nội dung cuộn khi cửa sổ thấp. Không thêm cửa sổ điều khiển giả. Kiểm tra tối thiểu 760×720, 640×600 và 390×844 trong renderer; Windows scale 125%/150% là mục kiểm tra thủ công riêng.
+Trong lúc thực hiện, người dùng gửi thêm ảnh bộ chọn Ultra của Codex và yêu cầu thanh liền bo tròn, nút trắng lớn, tên mức phía trên. Yêu cầu này thay thanh mảnh có dấu nấc trong concept đầu: track gradient xanh dương/tím, thumb trắng 34px, tên mức ở giữa, model ở dưới và reset về mặc định ở góc. Hình thức kéo liền nhưng giá trị vẫn chốt theo tập effort rời rạc Codex cung cấp. Nhãn dưới thanh là cách click trực tiếp và đọc các mức có sẵn. Detail concept bổ sung: `/workspace/generated_images/exec-197b4593-5964-4a53-a8d0-337569208452.png`.
+
+Người dùng yêu cầu thêm Ultra/Max: hiển thị cả hai khi `supportedReasoningEfforts` của model có chúng, giữ nguyên thứ tự danh mục. Lưu đúng `ultra` hoặc `max`, không tự ánh xạ sang `xhigh` hoặc thêm mức vào model không hỗ trợ. Nguồn chính thức định nghĩa cả hai trong `ReasoningEffort`; Codex tự resolve Ultra theo metadata/chế độ đa agent trước inference, nên app không tuyên bố Ultra luôn tương đương một lượng suy luận backend cố định.
+
+Quyết định giao diện do người thực hiện chọn: radio cho context; lựa chọn mặc định hiện rõ; thông tin kỹ thuật chi tiết nằm trong phần giải thích thu gọn thay vì chiếm toàn màn hình. Concept mới tại `/workspace/generated_images/exec-b43e1f01-b0d0-4d91-8082-5b2cee73e269.png`. Token nền `#f6f3eb`, surface trắng, chữ `#203d37`, phụ `#65776d`, cam `#e97950`, xanh `#247b69`, panel subagent sage nhạt. Font hệ thống Segoe UI; bo 16px và viền mảnh; icon Lucide nét 1.8; hover/focus 160ms, tắt chuyển động khi reduced motion. Không có ảnh/illustration nhúng hoặc overlay. Giữ vùng Lưu/Bỏ thay đổi ở dưới, nội dung cuộn khi cửa sổ thấp. Không thêm cửa sổ điều khiển giả. Cửa sổ ban đầu khoảng 820×920; kiểm tra tối thiểu 820×920, 760×720, 640×600 và 390×844 trong renderer; Windows scale 125%/150% là mục kiểm tra thủ công riêng.
 
 Diff và lịch sử dùng nhãn rõ: Model chính, Reasoning chính, Context window, Model subagent, Reasoning subagent. Khi chỉ đổi context hoặc subagent, hàng lịch sử phải tóm tắt đúng các mục đó thay vì hiện model chính A → A.
 
@@ -103,4 +107,4 @@ Nếu bản Codex của người dùng không hỗ trợ mặc định subagent,
 
 ## Phần giao người thực hiện quyết định
 
-Tên component, cách chia module patch, version adapter nội bộ, CSS chi tiết và thứ tự commit có thể tự quyết miễn giữ hợp đồng/hành vi nêu trên. Không thêm chức năng độc lập ngoài các mục đã xác nhận. Sau khi duyệt thiết kế mới lập kế hoạch triển khai chi tiết.
+Tên component, cách chia module patch, version adapter nội bộ, CSS chi tiết và thứ tự commit có thể tự quyết miễn giữ hợp đồng/hành vi nêu trên. Không thêm chức năng độc lập ngoài các mục đã xác nhận. Người dùng giao người thực hiện chọn UI/UX và yêu cầu làm tiếp; không mở thêm vòng chọn màu hay phương pháp thực hiện.

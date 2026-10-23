@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CatalogResult, ConfigSnapshot, EffortEdit, HistoryEntry, ModelOption, Selection } from '../../shared/contracts'
+import type { CatalogResult, ConfigSnapshot, EffortEdit, HistoryEntry, ModelOption, Selection, ValueEdit } from '../../shared/contracts'
 import { resolveBridge } from '../bridge'
-import { deriveSelection, isDirty, previewOf, selectionIssue } from './state'
+import { deriveSelection, deriveSubagentSelection, isDirty, previewOf, resolveSubagentModel, selectionIssue } from './state'
 export type Notice = { tone: 'success' | 'error' | 'info'; title: string; detail?: string }
 export function usePicker() {
   const { api, demo } = useMemo(resolveBridge, [])
@@ -21,16 +21,21 @@ export function usePicker() {
       if (version !== generation.current) return
       if (!read.ok) { report(read.error.message); setSnapshot(null); return }
       const s = read.data, initial = fallback(s)
-      setSnapshot(s); setModels(initial.id ? [initial] : []); setSelection(deriveSelection({ snapshot: s, model: initial, previous: null }))
+      const initialModels = initial.id ? [initial] : []
+      if (s.values.subagentModel && s.values.subagentModel !== initial.id) initialModels.push({ ...initial, id: s.values.subagentModel, displayName: s.values.subagentModel })
+      setSnapshot(s); setModels(initialModels); setSelection(deriveSelection({ snapshot: s, model: initial, previous: null }))
       setBusy(false); setCatalogLoading(true)
       const result = await api.getCatalog()
       if (version !== generation.current) return
       if (result.ok) {
         setCatalog(result.data)
-        const options = [...result.data.models]
-        if (initial.id && !options.some(m => m.id === initial.id)) options.unshift(initial)
-        setModels(options)
-        setSelection(previous => deriveSelection({ snapshot: s, model: options.find(m => m.id === previous.model) ?? { ...initial, id: previous.model, displayName: previous.model }, previous }))
+        setModels(previous => {
+          const options = [...result.data.models]
+          for (const existing of previous) if (existing.id && !options.some(model => model.id === existing.id)) options.push(existing)
+          return options
+        })
+        // Metadata enriches existing choices; it must not rewrite pending edits
+        // or resurrect saved values from the snapshot captured before this await.
       } else setCatalog({ status: 'unavailable', models: [], message: result.error.message })
     } catch { report('Không đọc được cấu hình. Hãy mở ứng dụng desktop hoặc thử tải lại.') }
     finally { if (version === generation.current) { setBusy(false); setCatalogLoading(false) } }
@@ -38,14 +43,23 @@ export function usePicker() {
   useEffect(() => { void refresh(); return () => { ++generation.current } }, [])
   const selectedModel = models.find(m => m.id === selection.model) ?? { id: selection.model, displayName: selection.model, efforts: null, defaultEffort: null, source: 'manual' as const }
   const preview = snapshot ? previewOf(snapshot, selection) : null
-  const issue = snapshot ? selectionIssue(snapshot, selectedModel, selection) : null
+  const selectedSubagentModel = snapshot ? resolveSubagentModel(snapshot, selection, selectedModel, models) : { ...selectedModel, id: '', displayName: 'Mặc định Codex' }
+  const subagentInheritsModel = !preview?.after.subagentModel
+  const issue = snapshot ? selectionIssue(snapshot, selectedModel, selection, selectedSubagentModel) : null
   const dirty = Boolean(snapshot && isDirty(snapshot, selection))
   function selectModel(model: ModelOption) {
     if (!snapshot || busy) return
-    if (!models.some(m => m.id === model.id)) setModels([...models, model])
+    if (!models.some(m => m.id === model.id)) setModels(previous => [...previous, model])
     setSelection(previous => deriveSelection({ snapshot, model, previous })); setNotice(null)
   }
   function setEffort(effort: EffortEdit) { setSelection(previous => ({ ...previous, effort })); setNotice(null) }
+  function selectSubagentModel(model: ModelOption | null) {
+    if (!snapshot || busy) return
+    if (model && !models.some(item => item.id === model.id)) setModels(previous => [...previous, model])
+    setSelection(previous => deriveSubagentSelection({ snapshot, model, inheritedModel: selectedModel, previous })); setNotice(null)
+  }
+  function setSubagentEffort(subagentEffort: EffortEdit) { setSelection(previous => ({ ...previous, subagentEffort })); setNotice(null) }
+  function setContextWindow(contextWindow: ValueEdit<number>) { setSelection(previous => ({ ...previous, contextWindow })); setNotice(null) }
   function reset() { if (snapshot) setSelection(deriveSelection({ snapshot, model: models.find(m => m.id === snapshot.values.model) ?? fallback(snapshot), previous: null })); setNotice(null) }
   async function apply() {
     if (!snapshot || busy || !dirty || issue) return
@@ -87,5 +101,5 @@ export function usePicker() {
     } catch { return { ok: false, message: 'Kết nối gián đoạn. Tải lại để kiểm tra trạng thái thực tế.' } }
     finally { setBusy(false) }
   }
-  return { snapshot, models, selection, selectedModel, preview, issue, dirty, busy, catalogLoading, catalog, notice, demo, refresh, selectModel, setEffort, reset, apply, chooseConfig, chooseCli, openFolder, undo, listHistory: () => api.listHistory() }
+  return { snapshot, models, selection, selectedModel, selectedSubagentModel, subagentInheritsModel, preview, issue, dirty, busy, catalogLoading, catalog, notice, demo, refresh, selectModel, setEffort, selectSubagentModel, setSubagentEffort, setContextWindow, reset, apply, chooseConfig, chooseCli, openFolder, undo, listHistory: () => api.listHistory() }
 }
